@@ -1,3 +1,7 @@
+// project: https://github.com/Truth1984/tasklanguage
+// author : Awada. Z
+// MIT LICENSE
+
 import * as colors from "colors/safe";
 
 export class TaskLanguage {
@@ -92,7 +96,7 @@ export class TaskLanguage {
     this.lookup.exit = _exit;
   }
 
-  async run(index = 0) {
+  public async run(index = 0) {
     this._running = true;
     this.index = index;
     while (this.index > -1 && this.index != this.commands.length && this._running) {

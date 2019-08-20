@@ -97,7 +97,6 @@ class TaskLanguage {
                 if (this._log)
                     console.log(colors.yellow(`${this.index}  ${key}  ${args}`));
                 if (key === "labor" || !this.lookup[key]) {
-                    console.log(args, typeof args);
                     yield Promise.resolve(yield this.userLookup[String(args[0])](...args.slice(1))).catch(err => this.lookup.exit("-3", err));
                 }
                 else {

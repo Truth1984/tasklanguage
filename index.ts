@@ -22,7 +22,6 @@ export class TaskLanguage {
     this.commands = [];
     this.index = 0;
     this.memory = {};
-    this.lookup = {};
 
     this._running = false;
     this._log = logging;
@@ -34,38 +33,37 @@ export class TaskLanguage {
     };
     this.userLookup = {};
     this.userSignalMap = {};
-    this._initialize();
-  }
 
-  private _initialize() {
-    //partially true private
-    let _jump = (indexOrMark: number | string) => {
+    // ELIMINATE POLLUTION
+
+    let MARK = () => {};
+    let JUMP = (indexOrMark: number | string) => {
       if (typeof indexOrMark === "number") return (this.index = indexOrMark - 1);
       for (let i = 0; i < this.commands.length; i++) {
-        if (JSON.stringify(this.commands[i]) === JSON.stringify(["mark", indexOrMark])) return (this.index = i - 1);
+        if (JSON.stringify(this.commands[i]) === JSON.stringify(["MARK", indexOrMark])) return (this.index = i - 1);
       }
-      return _exit("-3", colors.red("JUMP - Mark didn't found: " + indexOrMark));
+      return EXIT("-3", colors.red("JUMP - Mark didn't found: " + indexOrMark));
     };
 
-    let _jumpif = async (
+    let JUMPIF = async (
       condition: (memory: {}, index: number) => any,
       trueDest?: number | string,
       falseDest?: number | string
     ) => {
       if (await condition(this.memory, this.index)) {
-        if (this._log) console.log(colors.grey("jump if - true"));
-        if (trueDest != undefined) await _jump(trueDest);
+        if (this._log) console.log(colors.grey("JUMP if - true"));
+        if (trueDest != undefined) await JUMP(trueDest);
       } else {
-        if (this._log) console.log(colors.grey("jump if - false"));
-        if (falseDest != undefined) await _jump(falseDest);
+        if (this._log) console.log(colors.grey("JUMP if - false"));
+        if (falseDest != undefined) await JUMP(falseDest);
       }
     };
 
-    let _inject = async (callback: (memory: {}, index: number) => any) => {
+    let INJECT = async (callback: (memory: {}, index: number) => any) => {
       return callback(this.memory, this.index);
     };
 
-    let _wait = async (exitCondition: number | ((memory: {}, index: number) => any)) => {
+    let WAIT = async (exitCondition: number | ((memory: {}, index: number) => any)) => {
       if (typeof exitCondition === "number")
         return await new Promise(resolve => setTimeout(() => resolve(true), exitCondition));
       while (!(await exitCondition(this.memory, this.index))) {
@@ -74,7 +72,7 @@ export class TaskLanguage {
       return true;
     };
 
-    let _exit = async (signal: string, error?: any) => {
+    let EXIT = async (signal: string, error?: any) => {
       if (this._signal != "0") return;
       this._signal = signal;
       this._running = false;
@@ -88,20 +86,22 @@ export class TaskLanguage {
       if (error) return Promise.reject({ index: this.index, expression: this.commands[this.index], error: error });
     };
 
-    let _labor = async (userKey: string, ...args: any) => {
+    let LABOR = async (userKey: string, ...args: any) => {
       return this.userLookup[userKey](...args);
     };
 
-    this.lookup.mark = () => {};
-    this.lookup.jump = _jump;
-    this.lookup.jumpif = _jumpif;
-    this.lookup.inject = _inject;
-    this.lookup.wait = _wait;
-    this.lookup.exit = _exit;
-    this.lookup.labor = _labor;
+    this.lookup = {
+      MARK,
+      JUMP,
+      JUMPIF,
+      INJECT,
+      WAIT,
+      EXIT,
+      LABOR
+    };
   }
 
-  public async run(index = 0) {
+  public async RUN(index = 0) {
     this._running = true;
     this.index = index;
     while (this.index > -1 && this.index != this.commands.length && this._running) {
@@ -111,62 +111,62 @@ export class TaskLanguage {
       if (this._log) console.log(colors.yellow(`${this.index}  ${key}  ${args}`));
 
       if (this.userLookup[key]) {
-        await Promise.resolve(await this.userLookup[key](...args)).catch(err => this.lookup.exit("-3", err));
+        await Promise.resolve(await this.userLookup[key](...args)).catch(err => this.lookup.EXIT("-3", err));
       } else if (this.lookup[key]) {
-        await Promise.resolve(await this.lookup[key](...args)).catch(err => this.lookup.exit("-3", err));
+        await Promise.resolve(await this.lookup[key](...args)).catch(err => this.lookup.EXIT("-3", err));
       } else {
-        return this.lookup.exit(-3, `function name doesn't exit: ${key}`);
+        return this.lookup.EXIT(-3, `function name doesn't exit: ${key}`);
       }
       this.index += 1; // jump needs to -1
     }
-    return this.lookup.exit(this._running ? "-1" : "-2");
+    return this.lookup.EXIT(this._running ? "-1" : "-2");
   }
 
-  public mark(name: string) {
-    return ["mark", name];
+  public MARK(name: string) {
+    return ["MARK", name];
   }
 
-  public jump(indexOrMark: number | string) {
-    return ["jump", indexOrMark];
+  public JUMP(indexOrMark: number | string) {
+    return ["JUMP", indexOrMark];
   }
 
-  public jumpif(
+  public JUMPIF(
     condition: (memory: {}, index: number) => any,
     trueDest?: number | string,
     falseDest?: number | string
   ) {
-    return ["jumpif", condition, trueDest, falseDest];
+    return ["JUMPIF", condition, trueDest, falseDest];
   }
 
-  public inject(callback: (memory: {}, index: number) => any) {
-    return ["inject", callback];
+  public INJECT(callback: (memory: {}, index: number) => any) {
+    return ["INJECT", callback];
   }
 
-  public wait(exitCondition: number | ((memory: {}, index: number) => any)) {
-    return ["wait", exitCondition];
+  public WAIT(exitCondition: number | ((memory: {}, index: number) => any)) {
+    return ["WAIT", exitCondition];
   }
 
-  public exit(exitCode: string, error?: String | Promise<any>) {
-    return ["exit", exitCode, error];
+  public EXIT(exitCode: string, error?: String | Promise<any>) {
+    return ["EXIT", exitCode, error];
   }
 
-  public labor(userKey: string, ...args: any) {
-    return ["labor", userKey, ...args];
+  public LABOR(userKey: string, ...args: any) {
+    return ["LABOR", userKey, ...args];
   }
 
-  public addCommand(...commands: []) {
+  public ADDCommand(...commands: []) {
     this.commands = this.commands.concat(commands);
   }
 
-  public addLookup(pairs: { [key: string]: Function }) {
+  public ADDLookup(pairs: { [key: string]: Function }) {
     this.userLookup = (<any>Object).assign(this.userLookup, pairs);
   }
 
-  public addSignalMap(pairs: {}) {
+  public ADDSignalMap(pairs: {}) {
     this.userSignalMap = (<any>Object).assign(this.userSignalMap, pairs);
   }
 
-  public setMemory(pairs: {}) {
+  public SETMemory(pairs: {}) {
     this.memory = (<any>Object).assign(this.memory, pairs);
   }
 }

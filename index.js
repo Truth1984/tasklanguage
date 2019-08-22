@@ -17,7 +17,6 @@ class TaskLanguage {
         this.commands = [];
         this.index = 0;
         this.memory = {};
-        this.lookup = {};
         this._running = false;
         this._log = logging;
         this._signal = "0";
@@ -28,37 +27,35 @@ class TaskLanguage {
         };
         this.userLookup = {};
         this.userSignalMap = {};
-        this._initialize();
-    }
-    _initialize() {
-        //partially true private
-        let _jump = (indexOrMark) => {
+        // ELIMINATE POLLUTION
+        let MARK = () => { };
+        let JUMP = (indexOrMark) => {
             if (typeof indexOrMark === "number")
                 return (this.index = indexOrMark - 1);
             for (let i = 0; i < this.commands.length; i++) {
-                if (JSON.stringify(this.commands[i]) === JSON.stringify(["mark", indexOrMark]))
+                if (JSON.stringify(this.commands[i]) === JSON.stringify(["MARK", indexOrMark]))
                     return (this.index = i - 1);
             }
-            return _exit("-3", colors.red("JUMP - Mark didn't found: " + indexOrMark));
+            return EXIT("-3", colors.red("JUMP - Mark didn't found: " + indexOrMark));
         };
-        let _jumpif = (condition, trueDest, falseDest) => __awaiter(this, void 0, void 0, function* () {
+        let JUMPIF = (condition, trueDest, falseDest) => __awaiter(this, void 0, void 0, function* () {
             if (yield condition(this.memory, this.index)) {
                 if (this._log)
-                    console.log(colors.grey("jump if - true"));
+                    console.log(colors.grey("JUMP if - true"));
                 if (trueDest != undefined)
-                    yield _jump(trueDest);
+                    yield JUMP(trueDest);
             }
             else {
                 if (this._log)
-                    console.log(colors.grey("jump if - false"));
+                    console.log(colors.grey("JUMP if - false"));
                 if (falseDest != undefined)
-                    yield _jump(falseDest);
+                    yield JUMP(falseDest);
             }
         });
-        let _inject = (callback) => __awaiter(this, void 0, void 0, function* () {
+        let INJECT = (callback) => __awaiter(this, void 0, void 0, function* () {
             return callback(this.memory, this.index);
         });
-        let _wait = (exitCondition) => __awaiter(this, void 0, void 0, function* () {
+        let WAIT = (exitCondition) => __awaiter(this, void 0, void 0, function* () {
             if (typeof exitCondition === "number")
                 return yield new Promise(resolve => setTimeout(() => resolve(true), exitCondition));
             while (!(yield exitCondition(this.memory, this.index))) {
@@ -66,7 +63,7 @@ class TaskLanguage {
             }
             return true;
         });
-        let _exit = (signal, error) => __awaiter(this, void 0, void 0, function* () {
+        let EXIT = (signal, error) => __awaiter(this, void 0, void 0, function* () {
             if (this._signal != "0")
                 return;
             this._signal = signal;
@@ -82,18 +79,20 @@ class TaskLanguage {
             if (error)
                 return Promise.reject({ index: this.index, expression: this.commands[this.index], error: error });
         });
-        let _labor = (userKey, ...args) => __awaiter(this, void 0, void 0, function* () {
+        let LABOR = (userKey, ...args) => __awaiter(this, void 0, void 0, function* () {
             return this.userLookup[userKey](...args);
         });
-        this.lookup.mark = () => { };
-        this.lookup.jump = _jump;
-        this.lookup.jumpif = _jumpif;
-        this.lookup.inject = _inject;
-        this.lookup.wait = _wait;
-        this.lookup.exit = _exit;
-        this.lookup.labor = _labor;
+        this.lookup = {
+            MARK,
+            JUMP,
+            JUMPIF,
+            INJECT,
+            WAIT,
+            EXIT,
+            LABOR
+        };
     }
-    run(index = 0) {
+    RUN(index = 0) {
         return __awaiter(this, void 0, void 0, function* () {
             this._running = true;
             this.index = index;
@@ -104,50 +103,50 @@ class TaskLanguage {
                 if (this._log)
                     console.log(colors.yellow(`${this.index}  ${key}  ${args}`));
                 if (this.userLookup[key]) {
-                    yield Promise.resolve(yield this.userLookup[key](...args)).catch(err => this.lookup.exit("-3", err));
+                    yield Promise.resolve(yield this.userLookup[key](...args)).catch(err => this.lookup.EXIT("-3", err));
                 }
                 else if (this.lookup[key]) {
-                    yield Promise.resolve(yield this.lookup[key](...args)).catch(err => this.lookup.exit("-3", err));
+                    yield Promise.resolve(yield this.lookup[key](...args)).catch(err => this.lookup.EXIT("-3", err));
                 }
                 else {
-                    return this.lookup.exit(-3, `function name doesn't exit: ${key}`);
+                    return this.lookup.EXIT(-3, `function name doesn't exit: ${key}`);
                 }
                 this.index += 1; // jump needs to -1
             }
-            return this.lookup.exit(this._running ? "-1" : "-2");
+            return this.lookup.EXIT(this._running ? "-1" : "-2");
         });
     }
-    mark(name) {
-        return ["mark", name];
+    MARK(name) {
+        return ["MARK", name];
     }
-    jump(indexOrMark) {
-        return ["jump", indexOrMark];
+    JUMP(indexOrMark) {
+        return ["JUMP", indexOrMark];
     }
-    jumpif(condition, trueDest, falseDest) {
-        return ["jumpif", condition, trueDest, falseDest];
+    JUMPIF(condition, trueDest, falseDest) {
+        return ["JUMPIF", condition, trueDest, falseDest];
     }
-    inject(callback) {
-        return ["inject", callback];
+    INJECT(callback) {
+        return ["INJECT", callback];
     }
-    wait(exitCondition) {
-        return ["wait", exitCondition];
+    WAIT(exitCondition) {
+        return ["WAIT", exitCondition];
     }
-    exit(exitCode, error) {
-        return ["exit", exitCode, error];
+    EXIT(exitCode, error) {
+        return ["EXIT", exitCode, error];
     }
-    labor(userKey, ...args) {
-        return ["labor", userKey, ...args];
+    LABOR(userKey, ...args) {
+        return ["LABOR", userKey, ...args];
     }
-    addCommand(...commands) {
+    ADDCommand(...commands) {
         this.commands = this.commands.concat(commands);
     }
-    addLookup(pairs) {
+    ADDLookup(pairs) {
         this.userLookup = Object.assign(this.userLookup, pairs);
     }
-    addSignalMap(pairs) {
+    ADDSignalMap(pairs) {
         this.userSignalMap = Object.assign(this.userSignalMap, pairs);
     }
-    setMemory(pairs) {
+    SETMemory(pairs) {
         this.memory = Object.assign(this.memory, pairs);
     }
 }

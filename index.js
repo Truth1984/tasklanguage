@@ -39,7 +39,7 @@ class TaskLanguage {
                 if (JSON.stringify(this.commands[i]) === JSON.stringify(["mark", indexOrMark]))
                     return (this.index = i - 1);
             }
-            return _exit("-3", "JUMP - Mark didn't found: " + indexOrMark);
+            return _exit("-3", colors.red("JUMP - Mark didn't found: " + indexOrMark));
         };
         let _jumpif = (condition, trueDest, falseDest) => __awaiter(this, void 0, void 0, function* () {
             if (yield condition(this.memory, this.index)) {
@@ -80,7 +80,10 @@ class TaskLanguage {
                 }
             }
             if (error)
-                return Promise.reject(error);
+                return Promise.reject({ index: this.index, expression: this.commands[this.index], error: error });
+        });
+        let _labor = (userKey, ...args) => __awaiter(this, void 0, void 0, function* () {
+            return this.userLookup[userKey](...args);
         });
         this.lookup.mark = () => { };
         this.lookup.jump = _jump;
@@ -88,6 +91,7 @@ class TaskLanguage {
         this.lookup.inject = _inject;
         this.lookup.wait = _wait;
         this.lookup.exit = _exit;
+        this.lookup.labor = _labor;
     }
     run(index = 0) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -99,11 +103,14 @@ class TaskLanguage {
                 let args = cmdArray.slice(1);
                 if (this._log)
                     console.log(colors.yellow(`${this.index}  ${key}  ${args}`));
-                if (key === "labor" || !this.lookup[key]) {
-                    yield Promise.resolve(yield this.userLookup[String(args[0])](...args.slice(1))).catch(err => this.lookup.exit("-3", err));
+                if (this.userLookup[key]) {
+                    yield Promise.resolve(yield this.userLookup[key](...args)).catch(err => this.lookup.exit("-3", err));
+                }
+                else if (this.lookup[key]) {
+                    yield Promise.resolve(yield this.lookup[key](...args)).catch(err => this.lookup.exit("-3", err));
                 }
                 else {
-                    yield Promise.resolve(yield this.lookup[key](...args)).catch(err => this.lookup.exit("-3", err));
+                    return this.lookup.exit(-3, `function name doesn't exit: ${key}`);
                 }
                 this.index += 1; // jump needs to -1
             }

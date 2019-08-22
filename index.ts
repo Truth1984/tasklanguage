@@ -44,7 +44,7 @@ export class TaskLanguage {
       for (let i = 0; i < this.commands.length; i++) {
         if (JSON.stringify(this.commands[i]) === JSON.stringify(["mark", indexOrMark])) return (this.index = i - 1);
       }
-      return _exit("-3", "JUMP - Mark didn't found: " + indexOrMark);
+      return _exit("-3", colors.red("JUMP - Mark didn't found: " + indexOrMark));
     };
 
     let _jumpif = async (
@@ -85,7 +85,11 @@ export class TaskLanguage {
           console.log(this.signalMap[signal]);
         }
       }
-      if (error) return Promise.reject(error);
+      if (error) return Promise.reject({ index: this.index, expression: this.commands[this.index], error: error });
+    };
+
+    let _labor = async (userKey: string, ...args: any) => {
+      return this.userLookup[userKey](...args);
     };
 
     this.lookup.mark = () => {};
@@ -94,6 +98,7 @@ export class TaskLanguage {
     this.lookup.inject = _inject;
     this.lookup.wait = _wait;
     this.lookup.exit = _exit;
+    this.lookup.labor = _labor;
   }
 
   public async run(index = 0) {
@@ -105,12 +110,12 @@ export class TaskLanguage {
       let args = cmdArray.slice(1);
       if (this._log) console.log(colors.yellow(`${this.index}  ${key}  ${args}`));
 
-      if (key === "labor" || !this.lookup[key]) {
-        await Promise.resolve(await this.userLookup[String(args[0])](...args.slice(1))).catch(err =>
-          this.lookup.exit("-3", err)
-        );
-      } else {
+      if (this.userLookup[key]) {
+        await Promise.resolve(await this.userLookup[key](...args)).catch(err => this.lookup.exit("-3", err));
+      } else if (this.lookup[key]) {
         await Promise.resolve(await this.lookup[key](...args)).catch(err => this.lookup.exit("-3", err));
+      } else {
+        return this.lookup.exit(-3, `function name doesn't exit: ${key}`);
       }
       this.index += 1; // jump needs to -1
     }

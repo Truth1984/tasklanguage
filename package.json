@@ -8,7 +8,7 @@
     "build": "tsc --target es6 --module commonjs ./index.ts"
   },
   "name": "tasklanguage",
-  "version": "0.3.0",
+  "version": "0.5.1",
   "description": "tasks handle for js/ts",
   "main": "./index.js",
   "repository": "https://github.com/truth1984/tasklanguage",

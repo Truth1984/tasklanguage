@@ -13,6 +13,7 @@ task.ADDCommand(
     task.JUMP("submark"),
     task.INJECT(() => console.log("skipp")),
     task.MARK("submark"),
+    task.LABOR("bingo", "hello", "boi"),
     task.INJECT(mem => (mem.fox = "red"))
   ),
   task.INJECT(mem => console.log("mem", mem)),

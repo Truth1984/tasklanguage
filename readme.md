@@ -10,6 +10,15 @@ Mimicking assembly. Easy to visualize, modify and boost production speed.
 - Here, let me introduce the task language, aka SWEATSHOP, to you.
 - Simple to use, simple to implement, but most importantly, it's free.
 
+## What's new
+
+```
+{
+  "1.1.2": add SUBTASK, change error, add more examples.
+  "1.0.1": capitalize method names to be easily distinguishable, and how LABOR function.
+}
+```
+
 ## Usage
 
 Let's just jump into it.
@@ -50,7 +59,7 @@ setTimeout(() => task.SETMemory({ book: "interesting" }), 5000);
 
 ## API
 
-### ADDCommand(...commands: [])
+### ADDCommand(...commands: any)
 
 add commands to the command list.
 
@@ -85,6 +94,10 @@ falseDest: index or mark when condition returned false
 #### INJECT(callback: (memory: {}, index: number) => any)
 
 callback: function, takes in current MEMORY as first param, current index as second param.
+
+#### SUBTASK(...commands: any)
+
+execute subcommands, shared memory but not MARK
 
 #### WAIT(exitCondition: number | ((memory: {}, index: number) => any))
 

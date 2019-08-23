@@ -36,7 +36,7 @@ class TaskLanguage {
                 if (JSON.stringify(this.commands[i]) === JSON.stringify(["MARK", indexOrMark]))
                     return (this.index = i - 1);
             }
-            return EXIT("-3", colors.red("JUMP - Mark didn't found: " + indexOrMark));
+            return EXIT("-3", "JUMP - Mark didn't found: " + indexOrMark);
         };
         let JUMPIF = (condition, trueDest, falseDest) => __awaiter(this, void 0, void 0, function* () {
             if (yield condition(this.memory, this.index)) {
@@ -54,6 +54,14 @@ class TaskLanguage {
         });
         let INJECT = (callback) => __awaiter(this, void 0, void 0, function* () {
             return callback(this.memory, this.index);
+        });
+        let SUBTASK = (...commands) => __awaiter(this, void 0, void 0, function* () {
+            let sub = new TaskLanguage(this._log);
+            sub.userSignalMap = this.userSignalMap;
+            sub.userLookup = this.userLookup;
+            sub.memory = this.memory;
+            sub.ADDCommand(...commands);
+            return sub.RUN();
         });
         let WAIT = (exitCondition) => __awaiter(this, void 0, void 0, function* () {
             if (typeof exitCondition === "number")
@@ -87,6 +95,7 @@ class TaskLanguage {
             JUMP,
             JUMPIF,
             INJECT,
+            SUBTASK,
             WAIT,
             EXIT,
             LABOR
@@ -127,6 +136,9 @@ class TaskLanguage {
     }
     INJECT(callback) {
         return ["INJECT", callback];
+    }
+    SUBTASK(...commands) {
+        return ["SUBTASK", ...commands];
     }
     WAIT(exitCondition) {
         return ["WAIT", exitCondition];

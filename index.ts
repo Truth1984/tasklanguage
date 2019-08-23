@@ -12,9 +12,9 @@ export class TaskLanguage {
 
   protected signalMap: { [key: string]: string };
   protected _running: boolean;
-  protected _log: boolean;
   protected _signal: number | string;
 
+  public _log: boolean;
   public userLookup: { [key: string]: Function };
   public userSignalMap: { [key: string]: string };
 
@@ -42,7 +42,7 @@ export class TaskLanguage {
       for (let i = 0; i < this.commands.length; i++) {
         if (JSON.stringify(this.commands[i]) === JSON.stringify(["MARK", indexOrMark])) return (this.index = i - 1);
       }
-      return EXIT("-3", colors.red("JUMP - Mark didn't found: " + indexOrMark));
+      return EXIT("-3", "JUMP - Mark didn't found: " + indexOrMark);
     };
 
     let JUMPIF = async (
@@ -61,6 +61,15 @@ export class TaskLanguage {
 
     let INJECT = async (callback: (memory: {}, index: number) => any) => {
       return callback(this.memory, this.index);
+    };
+
+    let SUBTASK = async (...commands: []) => {
+      let sub = new TaskLanguage(this._log);
+      sub.userSignalMap = this.userSignalMap;
+      sub.userLookup = this.userLookup;
+      sub.memory = this.memory;
+      sub.ADDCommand(...commands);
+      return sub.RUN();
     };
 
     let WAIT = async (exitCondition: number | ((memory: {}, index: number) => any)) => {
@@ -95,6 +104,7 @@ export class TaskLanguage {
       JUMP,
       JUMPIF,
       INJECT,
+      SUBTASK,
       WAIT,
       EXIT,
       LABOR
@@ -142,6 +152,10 @@ export class TaskLanguage {
     return ["INJECT", callback];
   }
 
+  public SUBTASK(...commands: any) {
+    return ["SUBTASK", ...commands];
+  }
+
   public WAIT(exitCondition: number | ((memory: {}, index: number) => any)) {
     return ["WAIT", exitCondition];
   }
@@ -154,7 +168,7 @@ export class TaskLanguage {
     return ["LABOR", userKey, ...args];
   }
 
-  public ADDCommand(...commands: []) {
+  public ADDCommand(...commands: any) {
     this.commands = this.commands.concat(commands);
   }
 

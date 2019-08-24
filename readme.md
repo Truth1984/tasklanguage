@@ -14,7 +14,8 @@ Mimicking assembly. Easy to visualize, modify and boost production speed.
 
 ```
 {
-  "1.1.2": add SUBTASK, change error, add more examples.
+  "1.2.2": change error catch behavior
+  "1.1.2": add SUBTASK, change error message, add more examples.
   "1.0.1": capitalize method names to be easily distinguishable, and change LABOR.
 }
 ```

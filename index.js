@@ -111,11 +111,12 @@ class TaskLanguage {
                 let args = cmdArray.slice(1);
                 if (this._log)
                     console.log(colors.yellow(`${this.index}  ${key}  ${args}`));
+                let promisify = (func, ...args) => __awaiter(this, void 0, void 0, function* () { return func(...args); });
                 if (this.userLookup[key]) {
-                    yield Promise.resolve(yield this.userLookup[key](...args)).catch(err => this.lookup.EXIT("-3", err));
+                    yield promisify(this.userLookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
                 }
                 else if (this.lookup[key]) {
-                    yield Promise.resolve(yield this.lookup[key](...args)).catch(err => this.lookup.EXIT("-3", err));
+                    yield promisify(this.lookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
                 }
                 else {
                     return this.lookup.EXIT(-3, `function name doesn't exit: ${key}`);

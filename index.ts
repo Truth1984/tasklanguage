@@ -119,11 +119,12 @@ export class TaskLanguage {
       let key = String(cmdArray[0]);
       let args = cmdArray.slice(1);
       if (this._log) console.log(colors.yellow(`${this.index}  ${key}  ${args}`));
+      let promisify = async (func: any, ...args: any) => func(...args);
 
       if (this.userLookup[key]) {
-        await Promise.resolve(await this.userLookup[key](...args)).catch(err => this.lookup.EXIT("-3", err));
+        await promisify(this.userLookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
       } else if (this.lookup[key]) {
-        await Promise.resolve(await this.lookup[key](...args)).catch(err => this.lookup.EXIT("-3", err));
+        await promisify(this.lookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
       } else {
         return this.lookup.EXIT(-3, `function name doesn't exit: ${key}`);
       }

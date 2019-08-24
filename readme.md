@@ -14,6 +14,7 @@ Mimicking assembly. Easy to visualize, modify and boost production speed.
 
 ```
 {
+  "1.3.3": add _EXECUTE, fix JUMP error
   "1.2.2": change error catch behavior
   "1.1.2": add SUBTASK, change error message, add more examples.
   "1.0.1": capitalize method names to be easily distinguishable, and change LABOR.
@@ -98,7 +99,7 @@ callback: function, takes in current MEMORY as first param, current index as sec
 
 #### SUBTASK(...commands: any)
 
-execute subcommands, shared memory but not MARK
+execute subcommands, shared memory, lookupmap, signalmap, but not MARK
 
 #### WAIT(exitCondition: number | ((memory: {}, index: number) => any))
 
@@ -115,6 +116,10 @@ exitCode :
 ```
 
 error: can be self defined string.
+
+#### \_EXECUTE(...commands: any)
+
+similar to SUBTASK, but can actually execute commands, Better use it **WITHIN** a function.
 
 #### LABOR(userKey: string, ...args: any)
 

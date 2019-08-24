@@ -36,7 +36,7 @@ class TaskLanguage {
                 if (JSON.stringify(this.commands[i]) === JSON.stringify(["MARK", indexOrMark]))
                     return (this.index = i - 1);
             }
-            return EXIT("-3", "JUMP - Mark didn't found: " + indexOrMark);
+            return Promise.reject("JUMP - Mark didn't found: " + indexOrMark);
         };
         let JUMPIF = (condition, trueDest, falseDest) => __awaiter(this, void 0, void 0, function* () {
             if (yield condition(this.memory, this.index)) {
@@ -149,6 +149,26 @@ class TaskLanguage {
     }
     LABOR(userKey, ...args) {
         return ["LABOR", userKey, ...args];
+    }
+    _EXECUTE(...commands) {
+        return __awaiter(this, void 0, void 0, function* () {
+            for (let i of commands) {
+                let key = String(i[0]);
+                let args = i.slice(1);
+                if (this._log)
+                    console.log(colors.yellow(`${this.index} _EXECUTE: ${key}  ${args}`));
+                let promisify = (func, ...args) => __awaiter(this, void 0, void 0, function* () { return func(...args); });
+                if (this.userLookup[key]) {
+                    yield promisify(this.userLookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
+                }
+                else if (this.lookup[key]) {
+                    yield promisify(this.lookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
+                }
+                else {
+                    return this.lookup.EXIT(-3, `function name doesn't exit: ${key}`);
+                }
+            }
+        });
     }
     ADDCommand(...commands) {
         this.commands = this.commands.concat(commands);

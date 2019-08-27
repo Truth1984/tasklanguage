@@ -38,11 +38,12 @@ export class TaskLanguage {
 
     let MARK = () => {};
     let JUMP = (indexOrMark: number | string) => {
-      if (typeof indexOrMark === "number") return (this.index = indexOrMark - 1);
-      for (let i = 0; i < this.commands.length; i++) {
-        if (JSON.stringify(this.commands[i]) === JSON.stringify(["MARK", indexOrMark])) return (this.index = i - 1);
-      }
-      return Promise.reject("JUMP - Mark didn't found: " + indexOrMark);
+      this.index =
+        typeof indexOrMark === "number"
+          ? indexOrMark
+          : this.commands.findIndex(value => value[0] === "MARK" && value[1] === indexOrMark);
+      console.log(this.index);
+      return this.index === -1 ? Promise.reject("JUMP - Mark didn't found: " + indexOrMark) : (this.index -= 1);
     };
 
     let JUMPIF = async (
@@ -111,9 +112,13 @@ export class TaskLanguage {
     };
   }
 
-  public async RUN(index = 0) {
+  public async RUN(indexOrMark: number | string = 0) {
     this._running = true;
-    this.index = index;
+    this.index =
+      typeof indexOrMark === "number"
+        ? indexOrMark
+        : this.commands.findIndex(value => value[0] === "MARK" && value[1] === indexOrMark);
+    if (this.index === -1) return Promise.reject("RUN - Mark didn't found: " + indexOrMark);
     while (this.index > -1 && this.index != this.commands.length && this._running) {
       let cmdArray = this.commands[this.index];
       let key = String(cmdArray[0]);

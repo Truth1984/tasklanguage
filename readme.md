@@ -14,6 +14,7 @@ Mimicking assembly. Easy to visualize, modify and boost production speed.
 
 ```
 {
+  "1.4.1": RUN can start from a specific mark
   "1.3.3": add _EXECUTE, fix JUMP error
   "1.2.2": change error catch behavior
   "1.1.2": add SUBTASK, change error message, add more examples.
@@ -76,6 +77,10 @@ add user defined exit code and message to the signalmap
 ### SETMemory(pairs: {})
 
 publicly setting the inner memory for command list
+
+### RUN(indexOrMark: number | string = 0)
+
+running from beginning (index = 0) or specific mark.
 
 #### MARK(name: string)
 

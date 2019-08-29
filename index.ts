@@ -9,6 +9,7 @@ export class TaskLanguage {
   private index: number;
   private memory: { [key: string]: any };
   private lookup: { [key: string]: Function };
+  private _lineCutter: Array<any[]>;
 
   protected signalMap: { [key: string]: string };
   protected _running: boolean;
@@ -22,6 +23,7 @@ export class TaskLanguage {
     this.commands = [];
     this.index = 0;
     this.memory = {};
+    this._lineCutter = [];
 
     this._running = false;
     this._log = logging;
@@ -134,6 +136,8 @@ export class TaskLanguage {
         return this.lookup.EXIT(-3, `function name doesn't exit: ${key}`);
       }
       this.index += 1; // jump needs to -1
+
+      while (this._lineCutter.length != 0) await this._EXECUTE(this._lineCutter.shift());
     }
     return this.lookup.EXIT(this._running ? "-1" : "-2");
   }
@@ -189,6 +193,10 @@ export class TaskLanguage {
         return this.lookup.EXIT(-3, `function name doesn't exit: ${key}`);
       }
     }
+  }
+
+  public async _CUTINLINE(...commands: any) {
+    this._lineCutter = this._lineCutter.concat(commands);
   }
 
   public ADDCommand(...commands: any) {

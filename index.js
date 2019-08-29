@@ -17,6 +17,7 @@ class TaskLanguage {
         this.commands = [];
         this.index = 0;
         this.memory = {};
+        this._lineCutter = [];
         this._running = false;
         this._log = logging;
         this._signal = "0";
@@ -126,6 +127,8 @@ class TaskLanguage {
                     return this.lookup.EXIT(-3, `function name doesn't exit: ${key}`);
                 }
                 this.index += 1; // jump needs to -1
+                while (this._lineCutter.length != 0)
+                    yield this._EXECUTE(this._lineCutter.shift());
             }
             return this.lookup.EXIT(this._running ? "-1" : "-2");
         });
@@ -172,6 +175,11 @@ class TaskLanguage {
                     return this.lookup.EXIT(-3, `function name doesn't exit: ${key}`);
                 }
             }
+        });
+    }
+    _CUTINLINE(...commands) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this._lineCutter = this._lineCutter.concat(commands);
         });
     }
     ADDCommand(...commands) {

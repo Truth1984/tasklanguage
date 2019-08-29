@@ -14,6 +14,7 @@ Mimicking assembly. Easy to visualize, modify and boost production speed.
 
 ```
 {
+  "1.5.1": add _CUTINLINE
   "1.4.1": RUN can start from a specific mark
   "1.3.3": add _EXECUTE, fix JUMP error
   "1.2.2": change error catch behavior
@@ -125,6 +126,10 @@ error: can be self defined string.
 #### \_EXECUTE(...commands: any)
 
 similar to SUBTASK, but can actually execute commands, Better use it **WITHIN** a function.
+
+#### \_CUTINLINE(...commands: any)
+
+will use \_EXECUTE right after current command.
 
 #### LABOR(userKey: string, ...args: any)
 

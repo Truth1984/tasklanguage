@@ -44,7 +44,6 @@ export class TaskLanguage {
         typeof indexOrMark === "number"
           ? indexOrMark
           : this.commands.findIndex(value => value[0] === "MARK" && value[1] === indexOrMark);
-      console.log(this.index);
       return this.index === -1 ? Promise.reject("JUMP - Mark didn't found: " + indexOrMark) : (this.index -= 1);
     };
 

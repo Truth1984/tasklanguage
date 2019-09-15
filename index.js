@@ -114,7 +114,7 @@ class TaskLanguage {
                 let key = String(cmdArray[0]);
                 let args = cmdArray.slice(1);
                 if (this._log)
-                    console.log(colors.yellow(`${this.index}  ${key}  ${args}`));
+                    console.log(colors.yellow(`${this.index}  ${key}  ${JSON.stringify(args)}`));
                 let promisify = (func, ...args) => __awaiter(this, void 0, void 0, function* () { return func(...args); });
                 if (this.userLookup[key]) {
                     yield promisify(this.userLookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
@@ -162,7 +162,7 @@ class TaskLanguage {
                 let key = String(i[0]);
                 let args = i.slice(1);
                 if (this._log)
-                    console.log(colors.yellow(`${this.index} _EXECUTE: ${key}  ${args}`));
+                    console.log(colors.yellow(`${this.index} _EXECUTE: ${key}  ${JSON.stringify(args)}`));
                 let promisify = (func, ...args) => __awaiter(this, void 0, void 0, function* () { return func(...args); });
                 if (this.userLookup[key]) {
                     yield promisify(this.userLookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));

@@ -124,7 +124,7 @@ export class TaskLanguage {
       let cmdArray = this.commands[this.index];
       let key = String(cmdArray[0]);
       let args = cmdArray.slice(1);
-      if (this._log) console.log(colors.yellow(`${this.index}  ${key}  ${args}`));
+      if (this._log) console.log(colors.yellow(`${this.index}  ${key}  ${JSON.stringify(args)}`));
       let promisify = async (func: any, ...args: any) => func(...args);
 
       if (this.userLookup[key]) {
@@ -181,7 +181,7 @@ export class TaskLanguage {
     for (let i of commands) {
       let key = String(i[0]);
       let args = i.slice(1);
-      if (this._log) console.log(colors.yellow(`${this.index} _EXECUTE: ${key}  ${args}`));
+      if (this._log) console.log(colors.yellow(`${this.index} _EXECUTE: ${key}  ${JSON.stringify(args)}`));
       let promisify = async (func: any, ...args: any) => func(...args);
 
       if (this.userLookup[key]) {

@@ -14,6 +14,7 @@ Mimicking assembly. Easy to visualize, modify and boost production speed.
 
 ```
 {
+  "1.5.3": log full args, prevent [Object Object]
   "1.5.2": remove output
   "1.5.1": add _CUTINLINE
   "1.4.1": RUN can start from a specific mark

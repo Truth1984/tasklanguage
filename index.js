@@ -111,10 +111,16 @@ class TaskLanguage {
                 return Promise.reject("RUN - Mark didn't found: " + indexOrMark);
             while (this.index > -1 && this.index != this.commands.length && this._running) {
                 let cmdArray = this.commands[this.index];
+                if (cmdArray instanceof Function)
+                    cmdArray = ["INJECT", cmdArray];
                 let key = String(cmdArray[0]);
                 let args = cmdArray.slice(1);
-                if (this._log)
-                    console.log(colors.yellow(`${this.index}  ${key}  ${JSON.stringify(args)}`));
+                if (this._log) {
+                    let argsDisplay = [];
+                    for (let i of args)
+                        argsDisplay.push(i && i.constructor == {}.constructor ? JSON.stringify(i) : i);
+                    console.log(colors.yellow(`${this.index}  ${key}  ${argsDisplay}`));
+                }
                 let promisify = (func, ...args) => __awaiter(this, void 0, void 0, function* () { return func(...args); });
                 if (this.userLookup[key]) {
                     yield promisify(this.userLookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
@@ -159,10 +165,16 @@ class TaskLanguage {
     _EXECUTE(...commands) {
         return __awaiter(this, void 0, void 0, function* () {
             for (let i of commands) {
+                if (i instanceof Function)
+                    i = ["INJECT", i];
                 let key = String(i[0]);
                 let args = i.slice(1);
-                if (this._log)
-                    console.log(colors.yellow(`${this.index} _EXECUTE: ${key}  ${JSON.stringify(args)}`));
+                if (this._log) {
+                    let argsDisplay = [];
+                    for (let j of args)
+                        argsDisplay.push(j && j.constructor == {}.constructor ? JSON.stringify(j) : j);
+                    console.log(colors.yellow(`${this.index}  ${key}  ${argsDisplay}`));
+                }
                 let promisify = (func, ...args) => __awaiter(this, void 0, void 0, function* () { return func(...args); });
                 if (this.userLookup[key]) {
                     yield promisify(this.userLookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));

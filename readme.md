@@ -2,7 +2,7 @@
 
 Mimicking assembly. Easy to visualize, modify and boost production speed.
 
-##Intro:
+## Intro:
 
 - Event loop? Never heard of that.
 - setTimeout? Why should I use that?
@@ -62,6 +62,13 @@ task.ADDCommand(
 
 task.RUN();
 setTimeout(() => task.SETMemory({ book: "interesting" }), 5000);
+```
+
+```js
+// 1.6.2 & later
+task.ADDCommand((mem, index) => {
+  console.log(mem, index);
+});
 ```
 
 ## API

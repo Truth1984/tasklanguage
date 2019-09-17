@@ -86,7 +86,6 @@ export class TaskLanguage {
     let EXIT = async (signal: string, error?: any) => {
       if (this._signal != "0") return;
       this._signal = signal;
-      this._running = false;
       if (this._log) {
         if (this.userSignalMap[signal]) {
           console.log(this.userSignalMap[signal]);
@@ -94,7 +93,16 @@ export class TaskLanguage {
           console.log(this.signalMap[signal]);
         }
       }
+      RESET(true);
       if (error) return Promise.reject({ index: this.index, expression: this.commands[this.index], error: error });
+    };
+
+    let RESET = (clearMemory = false) => {
+      this.index = 0;
+      this._lineCutter = [];
+      this._running = false;
+      this._signal = 0;
+      if (clearMemory) this.memory = {};
     };
 
     let LABOR = async (userKey: string, ...args: any) => {
@@ -109,6 +117,7 @@ export class TaskLanguage {
       SUBTASK,
       WAIT,
       EXIT,
+      RESET,
       LABOR
     };
   }
@@ -120,18 +129,19 @@ export class TaskLanguage {
         ? indexOrMark
         : this.commands.findIndex(value => value[0] === "MARK" && value[1] === indexOrMark);
     if (this.index === -1) return Promise.reject("RUN - Mark didn't found: " + indexOrMark);
+
+    let promisify = async (func: any, ...args: any) => func(...args);
     while (this.index > -1 && this.index != this.commands.length && this._running) {
       let cmdArray = this.commands[this.index];
       if (cmdArray instanceof Function) cmdArray = ["INJECT", cmdArray];
-
       let key = String(cmdArray[0]);
       let args = cmdArray.slice(1);
+
       if (this._log) {
         let argsDisplay = [];
         for (let i of args) argsDisplay.push(i && i.constructor == {}.constructor ? JSON.stringify(i) : i);
         console.log(colors.yellow(`${this.index}  ${key}  ${argsDisplay}`));
       }
-      let promisify = async (func: any, ...args: any) => func(...args);
 
       if (this.userLookup[key]) {
         await promisify(this.userLookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
@@ -175,6 +185,10 @@ export class TaskLanguage {
     return ["WAIT", exitCondition];
   }
 
+  public RESET(clearMemory = false) {
+    return ["RESET", clearMemory];
+  }
+
   public EXIT(exitCode: string, error?: String | Promise<any>) {
     return ["EXIT", exitCode, error];
   }
@@ -184,17 +198,18 @@ export class TaskLanguage {
   }
 
   public async _EXECUTE(...commands: any) {
+    let promisify = async (func: any, ...args: any) => func(...args);
+
     for (let i of commands) {
       if (i instanceof Function) i = ["INJECT", i];
-
       let key = String(i[0]);
       let args = i.slice(1);
+
       if (this._log) {
         let argsDisplay = [];
         for (let j of args) argsDisplay.push(j && j.constructor == {}.constructor ? JSON.stringify(j) : j);
         console.log(colors.yellow(`${this.index}  ${key}  ${argsDisplay}`));
       }
-      let promisify = async (func: any, ...args: any) => func(...args);
 
       if (this.userLookup[key]) {
         await promisify(this.userLookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));

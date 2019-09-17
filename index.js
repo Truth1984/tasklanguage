@@ -74,7 +74,6 @@ class TaskLanguage {
             if (this._signal != "0")
                 return;
             this._signal = signal;
-            this._running = false;
             if (this._log) {
                 if (this.userSignalMap[signal]) {
                     console.log(this.userSignalMap[signal]);
@@ -83,9 +82,18 @@ class TaskLanguage {
                     console.log(this.signalMap[signal]);
                 }
             }
+            RESET(true);
             if (error)
                 return Promise.reject({ index: this.index, expression: this.commands[this.index], error: error });
         });
+        let RESET = (clearMemory = false) => {
+            this.index = 0;
+            this._lineCutter = [];
+            this._running = false;
+            this._signal = 0;
+            if (clearMemory)
+                this.memory = {};
+        };
         let LABOR = (userKey, ...args) => __awaiter(this, void 0, void 0, function* () {
             return this.userLookup[userKey](...args);
         });
@@ -97,6 +105,7 @@ class TaskLanguage {
             SUBTASK,
             WAIT,
             EXIT,
+            RESET,
             LABOR
         };
     }
@@ -109,6 +118,7 @@ class TaskLanguage {
                     : this.commands.findIndex(value => value[0] === "MARK" && value[1] === indexOrMark);
             if (this.index === -1)
                 return Promise.reject("RUN - Mark didn't found: " + indexOrMark);
+            let promisify = (func, ...args) => __awaiter(this, void 0, void 0, function* () { return func(...args); });
             while (this.index > -1 && this.index != this.commands.length && this._running) {
                 let cmdArray = this.commands[this.index];
                 if (cmdArray instanceof Function)
@@ -121,7 +131,6 @@ class TaskLanguage {
                         argsDisplay.push(i && i.constructor == {}.constructor ? JSON.stringify(i) : i);
                     console.log(colors.yellow(`${this.index}  ${key}  ${argsDisplay}`));
                 }
-                let promisify = (func, ...args) => __awaiter(this, void 0, void 0, function* () { return func(...args); });
                 if (this.userLookup[key]) {
                     yield promisify(this.userLookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
                 }
@@ -156,6 +165,9 @@ class TaskLanguage {
     WAIT(exitCondition) {
         return ["WAIT", exitCondition];
     }
+    RESET(clearMemory = false) {
+        return ["RESET", clearMemory];
+    }
     EXIT(exitCode, error) {
         return ["EXIT", exitCode, error];
     }
@@ -164,6 +176,7 @@ class TaskLanguage {
     }
     _EXECUTE(...commands) {
         return __awaiter(this, void 0, void 0, function* () {
+            let promisify = (func, ...args) => __awaiter(this, void 0, void 0, function* () { return func(...args); });
             for (let i of commands) {
                 if (i instanceof Function)
                     i = ["INJECT", i];
@@ -175,7 +188,6 @@ class TaskLanguage {
                         argsDisplay.push(j && j.constructor == {}.constructor ? JSON.stringify(j) : j);
                     console.log(colors.yellow(`${this.index}  ${key}  ${argsDisplay}`));
                 }
-                let promisify = (func, ...args) => __awaiter(this, void 0, void 0, function* () { return func(...args); });
                 if (this.userLookup[key]) {
                     yield promisify(this.userLookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
                 }

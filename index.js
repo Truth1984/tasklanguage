@@ -82,7 +82,7 @@ class TaskLanguage {
                     console.log(this.signalMap[signal]);
                 }
             }
-            RESET(true);
+            RESET(!error);
             if (error)
                 return Promise.reject({ index: this.index, expression: this.commands[this.index], error: error });
         });

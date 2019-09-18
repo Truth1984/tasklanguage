@@ -14,6 +14,7 @@ Mimicking assembly. Easy to visualize, modify and boost production speed.
 
 ```
 {
+  "1.7.4": save the MEMORY if error were catched
   "1.7.3": format, add RESET, RUN() is now rerunnable.
   "1.6.2": add quick INJECT and log function correctly
   "1.5.3": log full args, prevent [Object Object]
@@ -121,6 +122,10 @@ execute subcommands, shared memory, lookupmap, signalmap, but not MARK
 #### WAIT(exitCondition: number | ((memory: {}, index: number) => any))
 
 exitCondition : ms(\*1000 to be second) or callback, the condition check rate is every second.
+
+#### RESET(clearMemory = false)
+
+reset the current task progress
 
 #### EXIT(exitCode: string, error?: String | Promise<any>)
 

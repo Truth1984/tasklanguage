@@ -18,6 +18,7 @@ export class TaskLanguage {
   public _log: boolean;
   public userLookup: { [key: string]: Function };
   public userSignalMap: { [key: string]: string };
+  public previousResult: any;
 
   public constructor(logging = true) {
     this.commands = [];
@@ -35,6 +36,7 @@ export class TaskLanguage {
     };
     this.userLookup = {};
     this.userSignalMap = {};
+    this.previousResult;
 
     // ELIMINATE POLLUTION
 
@@ -144,9 +146,9 @@ export class TaskLanguage {
       }
 
       if (this.userLookup[key]) {
-        await promisify(this.userLookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
+        this.previousResult = await promisify(this.userLookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
       } else if (this.lookup[key]) {
-        await promisify(this.lookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
+        this.previousResult = await promisify(this.lookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
       } else {
         return this.lookup.EXIT(-3, `function name doesn't exit: ${key}`);
       }
@@ -212,9 +214,9 @@ export class TaskLanguage {
       }
 
       if (this.userLookup[key]) {
-        await promisify(this.userLookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
+        this.previousResult = await promisify(this.userLookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
       } else if (this.lookup[key]) {
-        await promisify(this.lookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
+        this.previousResult = await promisify(this.lookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
       } else {
         return this.lookup.EXIT(-3, `function name doesn't exit: ${key}`);
       }

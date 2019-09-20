@@ -28,6 +28,7 @@ class TaskLanguage {
         };
         this.userLookup = {};
         this.userSignalMap = {};
+        this.previousResult;
         // ELIMINATE POLLUTION
         let MARK = () => { };
         let JUMP = (indexOrMark) => {
@@ -132,10 +133,10 @@ class TaskLanguage {
                     console.log(colors.yellow(`${this.index}  ${key}  ${argsDisplay}`));
                 }
                 if (this.userLookup[key]) {
-                    yield promisify(this.userLookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
+                    this.previousResult = yield promisify(this.userLookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
                 }
                 else if (this.lookup[key]) {
-                    yield promisify(this.lookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
+                    this.previousResult = yield promisify(this.lookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
                 }
                 else {
                     return this.lookup.EXIT(-3, `function name doesn't exit: ${key}`);
@@ -189,10 +190,10 @@ class TaskLanguage {
                     console.log(colors.yellow(`${this.index}  ${key}  ${argsDisplay}`));
                 }
                 if (this.userLookup[key]) {
-                    yield promisify(this.userLookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
+                    this.previousResult = yield promisify(this.userLookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
                 }
                 else if (this.lookup[key]) {
-                    yield promisify(this.lookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
+                    this.previousResult = yield promisify(this.lookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
                 }
                 else {
                     return this.lookup.EXIT(-3, `function name doesn't exit: ${key}`);

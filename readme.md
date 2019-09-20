@@ -14,8 +14,19 @@ Mimicking assembly. Easy to visualize, modify and boost production speed.
 
 ```
 {
+  "1.7.5": add previousResult
   "1.7.4": save the MEMORY if error were catched
   "1.7.3": format, add RESET, RUN() is now rerunnable.
+}
+```
+
+## What's old
+
+<details>
+<summary>Past updates</summary>
+  <pre>  
+```
+{
   "1.6.2": add quick INJECT and log function correctly
   "1.5.3": log full args, prevent [Object Object]
   "1.5.2": remove output
@@ -26,8 +37,9 @@ Mimicking assembly. Easy to visualize, modify and boost production speed.
   "1.1.2": add SUBTASK, change error message, add more examples.
   "1.0.1": capitalize method names to be easily distinguishable, and change LABOR.
 }
-```
-
+   ```
+  </pre>
+</details>
 ## Usage
 
 Let's just jump into it.
@@ -152,3 +164,7 @@ will use \_EXECUTE right after current command.
 userKey: the name of your function that you want to run (MUST BE PREDEFINED)
 
 args: the arguments of the function.
+
+#### previousResult
+
+the temporary storage of the last result

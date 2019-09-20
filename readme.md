@@ -20,7 +20,7 @@ Mimicking assembly. Easy to visualize, modify and boost production speed.
 }
 ```
 
-## What's old
+## What's Ancient
 
 <details>
 <summary>Past updates</summary>

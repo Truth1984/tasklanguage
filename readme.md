@@ -24,9 +24,7 @@ Mimicking assembly. Easy to visualize, modify and boost production speed.
 
 <details>
 <summary>Past updates</summary>
-  <pre>  
-```
-{
+  <pre>  {
   "1.6.2": add quick INJECT and log function correctly
   "1.5.3": log full args, prevent [Object Object]
   "1.5.2": remove output
@@ -37,9 +35,9 @@ Mimicking assembly. Easy to visualize, modify and boost production speed.
   "1.1.2": add SUBTASK, change error message, add more examples.
   "1.0.1": capitalize method names to be easily distinguishable, and change LABOR.
 }
-   ```
   </pre>
 </details>
+
 ## Usage
 
 Let's just jump into it.

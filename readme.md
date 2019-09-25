@@ -14,12 +14,9 @@ Mimicking assembly. Easy to visualize, modify and boost production speed.
 
 ```
 {
+  "2.1.7": _CUTINLINE and _EXECUTE only accept array of functions now
   "2.0.1": add "this" binding
   "2.0.0": fix undefined error, ADDLookupCommand and ADDLookup can now be destructured
-  "1.8.2": add ADDLookupCommand, change LABOR to accept both string and function
-  "1.7.5": add previousResult
-  "1.7.4": save the MEMORY if error were catched
-  "1.7.3": format, add RESET, RUN() is now rerunnable.
 }
 ```
 
@@ -29,6 +26,10 @@ Mimicking assembly. Easy to visualize, modify and boost production speed.
 <summary>Past updates</summary>
   <pre>  
 {
+  "1.8.2": add ADDLookupCommand, change LABOR to accept both string and function
+  "1.7.5": add previousResult
+  "1.7.4": save the MEMORY if error were catched
+  "1.7.3": format, add RESET, RUN() is now rerunnable.
   "1.6.2": add quick INJECT and log function correctly
   "1.5.3": log full args, prevent [Object Object]
   "1.5.2": remove output
@@ -161,11 +162,11 @@ exitCode :
 
 error: can be self defined string.
 
-#### \_EXECUTE(...commands: any)
+#### \_EXECUTE(...commandsFunc: (() => Array<any>)[])
 
 similar to SUBTASK, but can actually execute commands, Better use it **WITHIN** a function.
 
-#### \_CUTINLINE(...commands: any)
+#### \_CUTINLINE(...commandsFunc: (() => Array<any>)[])
 
 will use \_EXECUTE right after current command.
 

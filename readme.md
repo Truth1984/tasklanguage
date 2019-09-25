@@ -14,6 +14,7 @@ Mimicking assembly. Easy to visualize, modify and boost production speed.
 
 ```
 {
+  "1.8.2": add ADDLookupCommand, change LABOR to accept both string and function
   "1.7.5": add previousResult
   "1.7.4": save the MEMORY if error were catched
   "1.7.3": format, add RESET, RUN() is now rerunnable.
@@ -24,7 +25,8 @@ Mimicking assembly. Easy to visualize, modify and boost production speed.
 
 <details>
 <summary>Past updates</summary>
-  <pre>  {
+  <pre>  
+{
   "1.6.2": add quick INJECT and log function correctly
   "1.5.3": log full args, prevent [Object Object]
   "1.5.2": remove output
@@ -93,6 +95,10 @@ add commands to the command list.
 
 add user defined functions to the lookupmap
 
+### ADDLookupCommand(...functions: Function[])
+
+add user defined functions to the lookupmap
+
 ### ADDSignalMap(pairs: {})
 
 add user defined exit code and message to the signalmap
@@ -157,7 +163,7 @@ similar to SUBTASK, but can actually execute commands, Better use it **WITHIN** 
 
 will use \_EXECUTE right after current command.
 
-#### LABOR(userKey: string, ...args: any)
+#### LABOR(userKey: string | function, ...args: any)
 
 userKey: the name of your function that you want to run (MUST BE PREDEFINED)
 

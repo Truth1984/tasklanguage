@@ -96,6 +96,8 @@ class TaskLanguage {
                 this.memory = {};
         };
         let LABOR = (userKey, ...args) => __awaiter(this, void 0, void 0, function* () {
+            if (typeof userKey === "function")
+                userKey = userKey.name;
             return this.userLookup[userKey](...args);
         });
         this.lookup = {
@@ -214,6 +216,11 @@ class TaskLanguage {
     }
     ADDSignalMap(pairs) {
         this.userSignalMap = Object.assign(this.userSignalMap, pairs);
+    }
+    //parse functions to userLookup
+    ADDLookupCommand(...functions) {
+        for (let i of functions)
+            this.userLookup[i.name] = i;
     }
     SETMemory(pairs) {
         this.memory = Object.assign(this.memory, pairs);

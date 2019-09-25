@@ -107,7 +107,8 @@ export class TaskLanguage {
       if (clearMemory) this.memory = {};
     };
 
-    let LABOR = async (userKey: string, ...args: any) => {
+    let LABOR = async (userKey: string | Function, ...args: any) => {
+      if (typeof userKey === "function") userKey = userKey.name;
       return this.userLookup[userKey](...args);
     };
 
@@ -237,6 +238,11 @@ export class TaskLanguage {
 
   public ADDSignalMap(pairs: {}) {
     this.userSignalMap = (<any>Object).assign(this.userSignalMap, pairs);
+  }
+
+  //parse functions to userLookup
+  public ADDLookupCommand(...functions: Function[]) {
+    for (let i of functions) this.userLookup[i.name] = i;
   }
 
   public SETMemory(pairs: {}) {

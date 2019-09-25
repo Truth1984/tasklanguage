@@ -200,7 +200,7 @@ class TaskLanguage {
     }
     ADDLookup(pairs) {
         Object.keys(pairs).map(i => {
-            this.userLookup[i] = pairs[i];
+            this.userLookup[i] = pairs[i].bind(this);
             pairs[i] = (...param) => [i, ...param];
         });
         return pairs;
@@ -210,7 +210,7 @@ class TaskLanguage {
     }
     ADDLookupCommand(...functions) {
         return functions.map(func => {
-            this.userLookup[func.name] = func;
+            this.userLookup[func.name] = func.bind(this);
             return (...param) => [func.name, ...param];
         });
     }

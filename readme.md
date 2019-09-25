@@ -14,6 +14,7 @@ Mimicking assembly. Easy to visualize, modify and boost production speed.
 
 ```
 {
+  "2.0.1": add "this" binding
   "2.0.0": fix undefined error, ADDLookupCommand and ADDLookup can now be destructured
   "1.8.2": add ADDLookupCommand, change LABOR to accept both string and function
   "1.7.5": add previousResult

@@ -135,7 +135,7 @@ export class TaskLanguage {
 
     let promisify = async (func: any, ...args: any) => func(...args);
     while (this.index > -1 && this.index != this.commands.length && this._running) {
-      let cmdArray = this.commands[this.index];
+      let cmdArray = this.commands[this.index] || [];
       if (cmdArray instanceof Function) cmdArray = ["INJECT", cmdArray];
       let key = String(cmdArray[0]);
       let args = cmdArray.slice(1);
@@ -205,6 +205,7 @@ export class TaskLanguage {
 
     for (let i of commands) {
       if (i instanceof Function) i = ["INJECT", i];
+      i = i || [];
       let key = String(i[0]);
       let args = i.slice(1);
 
@@ -233,16 +234,22 @@ export class TaskLanguage {
   }
 
   public ADDLookup(pairs: { [key: string]: Function }) {
-    this.userLookup = (<any>Object).assign(this.userLookup, pairs);
+    Object.keys(pairs).map(i => {
+      this.userLookup[i] = pairs[i];
+      pairs[i] = (...param: any) => [i, ...param];
+    });
+    return pairs;
   }
 
   public ADDSignalMap(pairs: {}) {
     this.userSignalMap = (<any>Object).assign(this.userSignalMap, pairs);
   }
 
-  //parse functions to userLookup
   public ADDLookupCommand(...functions: Function[]) {
-    for (let i of functions) this.userLookup[i.name] = i;
+    return functions.map(func => {
+      this.userLookup[func.name] = func;
+      return (...param: any) => [func.name, ...param];
+    });
   }
 
   public SETMemory(pairs: {}) {

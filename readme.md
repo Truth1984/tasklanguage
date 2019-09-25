@@ -14,6 +14,7 @@ Mimicking assembly. Easy to visualize, modify and boost production speed.
 
 ```
 {
+  "2.0.0": fix undefined error, ADDLookupCommand and ADDLookup can now be destructured
   "1.8.2": add ADDLookupCommand, change LABOR to accept both string and function
   "1.7.5": add previousResult
   "1.7.4": save the MEMORY if error were catched
@@ -83,6 +84,10 @@ setTimeout(() => task.SETMemory({ book: "interesting" }), 5000);
 task.ADDCommand((mem, index) => {
   console.log(mem, index);
 });
+// 2.0.0 & later
+let ball = number => console.log("bucket", number);
+({ ball } = task.ADDLookup({ ball }));
+task.ADDCommand(ball(7));
 ```
 
 ## API

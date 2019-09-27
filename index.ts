@@ -9,10 +9,7 @@ export class TaskLanguage {
   private index: number;
   private memory: { [key: string]: any };
   private lookup: { [key: string]: Function };
-  private _lineCutter: (() => Array<any>)[];
-  private _switcher: "ARRAY" | "FUNCTION";
-  private userLookupArray: { [key: string]: Function };
-  private userLookupFunction: { [key: string]: Function };
+  private _lineCutter: Array<any[]>;
 
   protected signalMap: { [key: string]: string };
   protected _running: boolean;
@@ -28,9 +25,6 @@ export class TaskLanguage {
     this.index = 0;
     this.memory = {};
     this._lineCutter = [];
-    this._switcher = "ARRAY";
-    this.userLookupArray = {};
-    this.userLookupFunction = {};
 
     this._running = false;
     this._log = logging;
@@ -77,8 +71,6 @@ export class TaskLanguage {
       let sub = new TaskLanguage(this._log);
       sub.userSignalMap = this.userSignalMap;
       sub.userLookup = this.userLookup;
-      sub.userLookupArray = this.userLookupArray;
-      sub.userLookupFunction = this.userLookupFunction;
       sub.memory = this.memory;
       sub.ADDCommand(...commands);
       return sub.RUN();
@@ -142,7 +134,6 @@ export class TaskLanguage {
     if (this.index === -1) return Promise.reject("RUN - Mark didn't found: " + indexOrMark);
 
     let promisify = async (func: any, ...args: any) => func(...args);
-    this.__TOGGLE("FUNCTION");
     while (this.index > -1 && this.index != this.commands.length && this._running) {
       let cmdArray = this.commands[this.index] || [];
       if (cmdArray instanceof Function) cmdArray = ["INJECT", cmdArray];
@@ -155,21 +146,16 @@ export class TaskLanguage {
         console.log(colors.yellow(`${this.index}  ${key}  ${argsDisplay}`));
       }
 
-      if (this.userLookupFunction[key]) {
-        this.previousResult = await promisify(this.userLookupFunction[key], ...args).catch(err =>
-          this.lookup.EXIT("-3", err)
-        );
+      if (this.userLookup[key]) {
+        this.previousResult = await promisify(this.userLookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
       } else if (this.lookup[key]) {
         this.previousResult = await promisify(this.lookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
       } else {
-        return this.lookup.EXIT("-3", `function name doesn't exit: ${key}`);
+        return this.lookup.EXIT(-3, `function name doesn't exit: ${key}`);
       }
       this.index += 1; // jump needs to -1
 
-      while (this._lineCutter.length != 0) {
-        let item = this._lineCutter.shift();
-        if (item) await this._EXECUTE(item);
-      }
+      while (this._lineCutter.length != 0) await this._EXECUTE(this._lineCutter.shift());
     }
     return this.lookup.EXIT(this._running ? "-1" : "-2");
   }
@@ -214,15 +200,9 @@ export class TaskLanguage {
     return ["LABOR", userKey, ...args];
   }
 
-  public async _EXECUTE(...commandsFunc: (() => Array<any>)[]) {
-    this.__TOGGLE("ARRAY");
-    let commands = [];
-    for (let i of commandsFunc) {
-      if (typeof i !== "function") return Promise.reject(`***${i}*** is not a function`);
-      commands.push(i());
-    }
-    this.__TOGGLE("FUNCTION");
+  public async _EXECUTE(...commands: any) {
     let promisify = async (func: any, ...args: any) => func(...args);
+
     for (let i of commands) {
       if (i instanceof Function) i = ["INJECT", i];
       i = i || [];
@@ -235,44 +215,27 @@ export class TaskLanguage {
         console.log(colors.yellow(`${this.index}  ${key}  ${argsDisplay}`));
       }
 
-      if (this.userLookupFunction[key]) {
-        this.previousResult = await promisify(this.userLookupFunction[key], ...args).catch(err =>
-          this.lookup.EXIT("-3", err)
-        );
+      if (this.userLookup[key]) {
+        this.previousResult = await promisify(this.userLookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
       } else if (this.lookup[key]) {
         this.previousResult = await promisify(this.lookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
       } else {
-        return this.lookup.EXIT("-3", `function name doesn't exit: ${key}`);
+        return this.lookup.EXIT(-3, `function name doesn't exit: ${key}`);
       }
     }
-    this.__TOGGLE("ARRAY");
   }
 
-  private __TOGGLE(status = this._switcher) {
-    if (this._switcher === status) return;
-    if (status === "ARRAY") {
-      this._switcher = "ARRAY";
-      Object.assign(this, this.userLookupArray);
-    } else if (status === "FUNCTION") {
-      this._switcher = "FUNCTION";
-      Object.assign(this, this.userLookupFunction);
-    }
-  }
-
-  public async _CUTINLINE(...commandsFunc: (() => Array<any>)[]) {
-    this._lineCutter = this._lineCutter.concat(commandsFunc);
+  public async _CUTINLINE(...commands: any) {
+    this._lineCutter = this._lineCutter.concat(commands);
   }
 
   public ADDCommand(...commands: any) {
-    this.__TOGGLE("ARRAY");
     this.commands = this.commands.concat(commands);
   }
 
   public ADDLookup(pairs: { [key: string]: Function }) {
     Object.keys(pairs).map(i => {
       this.userLookup[i] = pairs[i].bind(this);
-      this.userLookupFunction[i] = pairs[i].bind(this);
-      this.userLookupArray[i] = (...param: any) => [i, ...param];
       pairs[i] = (...param: any) => [i, ...param];
     });
     return pairs;
@@ -284,11 +247,8 @@ export class TaskLanguage {
 
   public ADDLookupCommand(...functions: Function[]) {
     return functions.map(func => {
-      let name = func.name;
-      this.userLookup[name] = func.bind(this);
-      this.userLookupFunction[name] = func.bind(this);
-      this.userLookupArray[name] = (...param: any) => [name, ...param];
-      return (...param: any) => [name, ...param];
+      this.userLookup[func.name] = func.bind(this);
+      return (...param: any) => [func.name, ...param];
     });
   }
 

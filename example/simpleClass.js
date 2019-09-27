@@ -4,7 +4,8 @@ class ABC extends TaskLanguage {
   constructor() {
     super();
     this.name = "verne";
-    [this.jules, this.marco, this.polo] = this.ADDLookupCommand(this.jules, this.marco, this.polo);
+    let commands = [this.jules, this.marco, this.polo];
+    [this.jules2, this.marco2, this.polo2] = this.ADDLookupCommand(...commands);
   }
 
   jules() {
@@ -21,16 +22,8 @@ class ABC extends TaskLanguage {
 }
 
 let a = new ABC();
-a.ADDCommand(
-  a.jules(),
-  a.marco(),
-  () => console.log(a._switcher),
-  () => {
-    a.marco();
-    console.log(a._switcher);
-
-    a._EXECUTE(() => a.marco()).catch(e => console.log("e2", e));
-    a.jules();
-  }
-);
+a.ADDCommand(a.jules2(), a.marco2(), async () => {
+  await a._EXECUTE(a.marco2(), () => console.log(a.jules.toString())).catch(e => console.log("e2", e));
+  console.log(a.jules.toString(), "--- awaited");
+});
 a.RUN().catch(e => console.log(e));

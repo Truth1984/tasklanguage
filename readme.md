@@ -14,6 +14,7 @@ Mimicking assembly. Easy to visualize, modify and boost production speed.
 
 ```
 {
+  "2.1.8": roll back, remove 2.1.7 requirement
   "2.1.7": _CUTINLINE and _EXECUTE only accept array of functions now
   "2.0.1": add "this" binding
   "2.0.0": fix undefined error, ADDLookupCommand and ADDLookup can now be destructured
@@ -87,9 +88,9 @@ task.ADDCommand((mem, index) => {
   console.log(mem, index);
 });
 // 2.0.0 & later
-let ball = number => console.log("bucket", number);
-({ ball } = task.ADDLookup({ ball }));
-task.ADDCommand(ball(7));
+let ballRP = (ball = number => console.log("bucket", number));
+({ ballRP } = task.ADDLookup({ ballRP }));
+task.ADDCommand(ballRP(7));
 ```
 
 ## API
@@ -162,11 +163,11 @@ exitCode :
 
 error: can be self defined string.
 
-#### \_EXECUTE(...commandsFunc: (() => Array<any>)[])
+#### \_EXECUTE(...commands: any)
 
 similar to SUBTASK, but can actually execute commands, Better use it **WITHIN** a function.
 
-#### \_CUTINLINE(...commandsFunc: (() => Array<any>)[])
+#### \_CUTINLINE(...commands: any)
 
 will use \_EXECUTE right after current command.
 

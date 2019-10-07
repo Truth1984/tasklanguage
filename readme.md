@@ -14,10 +14,9 @@ Mimicking assembly. Easy to visualize, modify and boost production speed.
 
 ```
 {
+  "2.1.9": minor changes
   "2.1.8": roll back, remove 2.1.7 requirement
   "2.1.7": _CUTINLINE and _EXECUTE only accept array of functions now
-  "2.0.1": add "this" binding
-  "2.0.0": fix undefined error, ADDLookupCommand and ADDLookup can now be destructured
 }
 ```
 
@@ -27,6 +26,8 @@ Mimicking assembly. Easy to visualize, modify and boost production speed.
 <summary>Past updates</summary>
   <pre>  
 {
+  "2.0.1": add "this" binding
+  "2.0.0": fix undefined error, ADDLookupCommand and ADDLookup can now be destructured
   "1.8.2": add ADDLookupCommand, change LABOR to accept both string and function
   "1.7.5": add previousResult
   "1.7.4": save the MEMORY if error were catched

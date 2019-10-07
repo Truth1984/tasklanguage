@@ -132,7 +132,7 @@ class TaskLanguage {
                 this.previousResult = await promisify(this.lookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
             }
             else {
-                return this.lookup.EXIT(-3, `function name doesn't exit: ${key}`);
+                return this.lookup.EXIT("-3", `function name doesn't exit: ${key}`);
             }
             this.index += 1; // jump needs to -1
             while (this._lineCutter.length != 0)
@@ -188,7 +188,7 @@ class TaskLanguage {
                 this.previousResult = await promisify(this.lookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
             }
             else {
-                return this.lookup.EXIT(-3, `function name doesn't exit: ${key}`);
+                return this.lookup.EXIT("-3", `function name doesn't exit: ${key}`);
             }
         }
     }

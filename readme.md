@@ -14,7 +14,7 @@ Mimicking assembly. Easy to visualize, modify and boost production speed.
 
 ```
 {
-  "2.2.0": fix error's index
+  "2.2.1": fix error's index
   "2.1.9": minor changes
   "2.1.8": roll back, remove 2.1.7 requirement
   "2.1.7": _CUTINLINE and _EXECUTE only accept array of functions now
@@ -91,7 +91,7 @@ task.ADDCommand((mem, index) => {
 });
 // 2.0.0 & later
 let ballRP = (ball = number => console.log("bucket", number));
-({ ballRP } = task.ADDLookup({ ballRP }));
+({ ballRP } = task.ADDLookup({ ball }));
 task.ADDCommand(ballRP(7));
 ```
 

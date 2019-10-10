@@ -95,8 +95,9 @@ export class TaskLanguage {
           console.log(this.signalMap[signal]);
         }
       }
+      let errorIndex = this.index;
       RESET(!error);
-      if (error) return Promise.reject({ index: this.index, expression: this.commands[this.index], error: error });
+      if (error) return Promise.reject({ index: errorIndex, expression: this.commands[this.index], error: error });
     };
 
     let RESET = (clearMemory = false) => {

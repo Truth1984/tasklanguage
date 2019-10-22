@@ -10,6 +10,8 @@ class TaskLanguage {
         this.index = 0;
         this.memory = {};
         this._lineCutter = [];
+        this._innerCommands = [];
+        this._innerIndex = 0;
         this._running = false;
         this._log = logging;
         this._signal = "0";
@@ -23,25 +25,30 @@ class TaskLanguage {
         this.previousResult;
         // ELIMINATE POLLUTION
         let MARK = () => { };
-        let JUMP = (indexOrMark) => {
-            this.index =
-                typeof indexOrMark === "number"
-                    ? indexOrMark
-                    : this.commands.findIndex(value => value[0] === "MARK" && value[1] === indexOrMark);
-            return this.index === -1 ? Promise.reject("JUMP - Mark didn't found: " + indexOrMark) : (this.index -= 1);
+        let JUMP = (indexOrMark, innerJump = false) => {
+            let pointer;
+            let commandTarget = innerJump ? this._innerCommands : this.commands;
+            if (typeof indexOrMark === "number")
+                pointer = indexOrMark;
+            else
+                pointer = commandTarget.findIndex(value => value[0] === "MARK" && value[1] === indexOrMark);
+            innerJump ? (this._innerIndex = pointer) : (this.index = pointer);
+            if (pointer === -1)
+                return Promise.reject("JUMP - Mark didn't found: " + indexOrMark);
+            return innerJump ? (this._innerIndex -= 1) : (this.index -= 1);
         };
-        let JUMPIF = async (condition, trueDest, falseDest) => {
+        let JUMPIF = async (condition, trueDest, falseDest, innerJump = false) => {
             if (await condition(this.memory, this.index)) {
                 if (this._log)
                     console.log(colors.grey("JUMP if - true"));
                 if (trueDest != undefined)
-                    await JUMP(trueDest);
+                    await JUMP(trueDest, innerJump);
             }
             else {
                 if (this._log)
                     console.log(colors.grey("JUMP if - false"));
                 if (falseDest != undefined)
-                    await JUMP(falseDest);
+                    await JUMP(falseDest, innerJump);
             }
         };
         let INJECT = async (callback) => {
@@ -144,11 +151,11 @@ class TaskLanguage {
     MARK(name) {
         return ["MARK", name];
     }
-    JUMP(indexOrMark) {
-        return ["JUMP", indexOrMark];
+    JUMP(indexOrMark, innerJump = false) {
+        return ["JUMP", indexOrMark, innerJump];
     }
-    JUMPIF(condition, trueDest, falseDest) {
-        return ["JUMPIF", condition, trueDest, falseDest];
+    JUMPIF(condition, trueDest, falseDest, innerJump = false) {
+        return ["JUMPIF", condition, trueDest, falseDest, innerJump];
     }
     INJECT(callback) {
         return ["INJECT", callback];
@@ -170,17 +177,19 @@ class TaskLanguage {
     }
     async _EXECUTE(...commands) {
         let promisify = async (func, ...args) => func(...args);
-        for (let i of commands) {
-            if (i instanceof Function)
-                i = ["INJECT", i];
-            i = i || [];
-            let key = String(i[0]);
-            let args = i.slice(1);
+        this._innerCommands = commands;
+        this._innerIndex = 0;
+        while (this._innerIndex > -1 && this._innerIndex != this._innerCommands.length && this._running) {
+            let cmdArray = this._innerCommands[this._innerIndex] || [];
+            if (cmdArray instanceof Function)
+                cmdArray = ["INJECT", cmdArray];
+            let key = String(cmdArray[0]);
+            let args = cmdArray.slice(1);
             if (this._log) {
                 let argsDisplay = [];
                 for (let j of args)
                     argsDisplay.push(j && j.constructor == {}.constructor ? JSON.stringify(j) : j);
-                console.log(colors.yellow(`${this.index}  ${key}  ${argsDisplay}`));
+                console.log(colors.yellow(`${this.index}  -inner  ${this._innerIndex}  ${key}  ${argsDisplay}`));
             }
             if (this.userLookup[key]) {
                 this.previousResult = await promisify(this.userLookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
@@ -191,6 +200,9 @@ class TaskLanguage {
             else {
                 return this.lookup.EXIT("-3", `function name doesn't exit: ${key}`);
             }
+            this._innerIndex += 1;
+            while (this._lineCutter.length != 0)
+                await this._EXECUTE(this._lineCutter.shift());
         }
     }
     async _CUTINLINE(...commands) {

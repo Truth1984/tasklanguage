@@ -14,7 +14,7 @@ Mimicking assembly. Easy to visualize, modify and boost production speed.
 
 ```
 {
-  "2.3.0": support inner jump within _Execute
+  "2.3.1": support inner jump within _Execute
   "2.2.1": fix error's index
   "2.1.9": minor changes
   "2.1.8": roll back, remove 2.1.7 requirement
@@ -126,21 +126,17 @@ running from beginning (index = 0) or specific mark.
 
 Generate Marking
 
-#### JUMP(indexOrMark: number | string, innerJump = false)
+#### JUMP(indexOrMark: number | string)
 
 Jump to the mark or the index of the whole commands array
 
-innerJump: called within \_EXECUTE, jump to innerMark, otherwise jump to Main Program's mark
-
-#### JUMPIF(condition: (memory: {}, index: number) => any,trueDest?: number | string,falseDest?: number | string, innerJump = false)
+#### JUMPIF(condition: (memory: {}, index: number) => any,trueDest?: number | string,falseDest?: number | string)
 
 condition: function, takes in current MEMORY as first param, current index as second param.
 
 trueDest: index or mark when condition returned true
 
 falseDest: index or mark when condition returned false
-
-innerJump: called within \_EXECUTE, jump to innerMark, otherwise jump to Main Program's mark
 
 #### INJECT(callback: (memory: {}, index: number) => any)
 
@@ -153,6 +149,10 @@ execute subcommands, shared memory, lookupmap, signalmap, but not MARK
 #### WAIT(exitCondition: number | ((memory: {}, index: number) => any))
 
 exitCondition : ms(\*1000 to be second) or callback, the condition check rate is every second.
+
+#### SKIP()
+
+within \_EXECUTE, JUMP to the end
 
 #### RESET(clearMemory = false)
 

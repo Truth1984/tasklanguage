@@ -4,6 +4,25 @@
 // MIT LICENSE
 Object.defineProperty(exports, "__esModule", { value: true });
 const colors = require("colors/safe");
+let promisify = async (func, ...args) => await func(...args);
+let checkFunction = (func) => (typeof func == "function" ? ["INJECT", func] : func);
+let logCommands = (index, key, args) => {
+    let argsDisplay = [];
+    for (let i of args)
+        argsDisplay.push(i && i.constructor == {}.constructor ? JSON.stringify(i) : i);
+    console.log(colors.yellow(`${index}  ${key}  ${argsDisplay}`));
+};
+let util = { promisify, checkFunction, logCommands };
+let signalMap = {
+    "-1": colors.green("program terminated after finish"),
+    "-2": colors.green("program terminated by user"),
+    "-3": colors.red("program exit with error")
+};
+let jumpMsg = {
+    true: colors.grey("JUMP if - true"),
+    false: colors.grey("JUMP if - false")
+};
+let settings = { signalMap, jumpMsg };
 class TaskLanguage {
     constructor(logging = true) {
         this.commands = [];
@@ -13,11 +32,7 @@ class TaskLanguage {
         this._running = false;
         this._log = logging;
         this._signal = "0";
-        this.signalMap = {
-            "-1": colors.green("program terminated after finish"),
-            "-2": colors.green("program terminated by user"),
-            "-3": colors.red("program exit with error")
-        };
+        this.signalMap = settings.signalMap;
         this.userLookup = {};
         this.userSignalMap = {};
         this.previousResult;
@@ -33,13 +48,13 @@ class TaskLanguage {
         let JUMPIF = async (condition, trueDest, falseDest) => {
             if (await condition(this.memory, this.index)) {
                 if (this._log)
-                    console.log(colors.grey("JUMP if - true"));
+                    console.log(settings.jumpMsg.true);
                 if (trueDest != undefined)
                     await JUMP(trueDest);
             }
             else {
                 if (this._log)
-                    console.log(colors.grey("JUMP if - false"));
+                    console.log(settings.jumpMsg.false);
                 if (falseDest != undefined)
                     await JUMP(falseDest);
             }
@@ -115,24 +130,20 @@ class TaskLanguage {
                 : this.commands.findIndex(value => value[0] === "MARK" && value[1] === indexOrMark);
         if (this.index === -1)
             return Promise.reject("RUN - Mark didn't found: " + indexOrMark);
-        let promisify = async (func, ...args) => func(...args);
         while (this.index > -1 && this.index != this.commands.length && this._running) {
             let cmdArray = this.commands[this.index] || [];
-            if (cmdArray instanceof Function)
-                cmdArray = ["INJECT", cmdArray];
+            cmdArray = util.checkFunction(cmdArray);
             let key = String(cmdArray[0]);
             let args = cmdArray.slice(1);
-            if (this._log) {
-                let argsDisplay = [];
-                for (let i of args)
-                    argsDisplay.push(i && i.constructor == {}.constructor ? JSON.stringify(i) : i);
-                console.log(colors.yellow(`${this.index}  ${key}  ${argsDisplay}`));
-            }
+            if (this._log)
+                util.logCommands(this.index, key, args);
             if (this.userLookup[key]) {
-                this.previousResult = await promisify(this.userLookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
+                this.previousResult = await util
+                    .promisify(this.userLookup[key], ...args)
+                    .catch(err => this.lookup.EXIT("-3", err));
             }
             else if (this.lookup[key]) {
-                this.previousResult = await promisify(this.lookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
+                this.previousResult = await util.promisify(this.lookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
             }
             else {
                 return this.lookup.EXIT("-3", `function name doesn't exit: ${key}`);
@@ -174,31 +185,7 @@ class TaskLanguage {
         return ["LABOR", userKey, ...args];
     }
     async _EXECUTE(...commands) {
-        let promisify = async (func, ...args) => func(...args);
-        for (let i of commands) {
-            if (i instanceof Function)
-                i = ["INJECT", i];
-            i = i || [];
-            let key = String(i[0]);
-            let args = i.slice(1);
-            if (this._log) {
-                let argsDisplay = [];
-                for (let j of args)
-                    argsDisplay.push(j && j.constructor == {}.constructor ? JSON.stringify(j) : j);
-                console.log(colors.yellow(`${this.index}  ${key}  ${argsDisplay}`));
-            }
-            if (this.userLookup[key]) {
-                this.previousResult = await promisify(this.userLookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
-            }
-            else if (this.lookup[key]) {
-                this.previousResult = await promisify(this.lookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
-            }
-            else {
-                return this.lookup.EXIT("-3", `function name doesn't exit: ${key}`);
-            }
-            if (key == "SKIP" || key == "EXIT")
-                break;
-        }
+        return this.lookup["SUBTASK"](...commands);
     }
     async _CUTINLINE(...commands) {
         this._lineCutter = this._lineCutter.concat(commands);

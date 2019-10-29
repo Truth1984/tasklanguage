@@ -14,7 +14,8 @@ Mimicking assembly. Easy to visualize, modify and boost production speed.
 
 ```
 {
-  "2.3.1": support inner jump within _Execute
+  "2.4.1": replace _EXECUTE with SUBTASK
+  "2.3.1": support inner jump SKIP within _EXECUTE
   "2.2.1": fix error's index
   "2.1.9": minor changes
   "2.1.8": roll back, remove 2.1.7 requirement
@@ -172,7 +173,7 @@ error: can be self defined string.
 
 #### \_EXECUTE(...commands: any)
 
-similar to SUBTASK, but can actually execute commands, Better use it **WITHIN** a function.
+similar to SUBTASK, but can actually execute commands, Better use it **WITHIN** a function. replace original with subtask
 
 #### \_CUTINLINE(...commands: any)
 

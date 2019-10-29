@@ -1,8 +1,8 @@
 var { TaskLanguage } = require("..");
 
 let task = new TaskLanguage();
-task.ADDSignalMap({"-4":"testing failed"})
-let eq = task.ADDLookup({"eq":(a,b)=>{if(a!==b) task}})
+task.ADDSignalMap({ "-4": "testing failed" });
+
 task.ADDCommand(
   task.MARK("_start0"),
   task.MARK("_start1"),
@@ -17,7 +17,20 @@ task.ADDCommand(
     mem.status = "working";
     console.log("assign memory.status");
   },
-  mem => console.log("accessing memory.status", mem)
+  mem => console.log("accessing memory.status", mem),
+  task.MARK("_execute test"),
+  async () =>
+    await task
+      ._EXECUTE(
+        task.JUMP("innermarking"),
+        () => console.log("hi - this one should be skipped"),
+        task.MARK("innermarking"),
+        () => console.log("end, this one should be called")
+      )
+      .catch(e => console.log(e)),
+  task.MARK("Previous result"),
+  () => "prev - result- returned",
+  () => console.log(task.previousResult)
 );
 
 task.RUN("_start1").catch(e => console.log(e));

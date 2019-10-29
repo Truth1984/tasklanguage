@@ -93,7 +93,7 @@ task.ADDCommand((mem, index) => {
 });
 // 2.0.0 & later
 let ballRP = (ball = number => console.log("bucket", number));
-({ ballRP } = task.ADDLookup({ ball }));
+ballRP = task.ADDLookup({ ball }).ball;
 task.ADDCommand(ballRP(7));
 ```
 

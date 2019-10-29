@@ -29,6 +29,7 @@ class TaskLanguage {
         this.index = 0;
         this.memory = {};
         this._lineCutter = [];
+        this._mainProcess = true;
         this._running = false;
         this._log = logging;
         this._signal = "0";
@@ -64,6 +65,7 @@ class TaskLanguage {
         };
         let SUBTASK = async (...commands) => {
             let sub = new TaskLanguage(this._log);
+            sub._mainProcess = false;
             sub.userSignalMap = this.userSignalMap;
             sub.userLookup = this.userLookup;
             sub.memory = this.memory;
@@ -79,11 +81,11 @@ class TaskLanguage {
             return true;
         };
         let SKIP = async () => { };
-        let EXIT = async (signal, error) => {
+        let EXIT = async (signal, error, mainProcess = this._mainProcess) => {
             if (this._signal != "0")
                 return;
             this._signal = signal;
-            if (this._log) {
+            if (this._log && mainProcess) {
                 if (this.userSignalMap[signal]) {
                     console.log(this.userSignalMap[signal]);
                 }
@@ -94,7 +96,7 @@ class TaskLanguage {
             let errorIndex = this.index;
             RESET(!error);
             if (error)
-                return Promise.reject({ index: errorIndex, expression: this.commands[this.index], error: error });
+                return Promise.reject({ index: errorIndex, expression: this.commands[errorIndex], error: error });
         };
         let RESET = (clearMemory = false) => {
             this.index = 0;

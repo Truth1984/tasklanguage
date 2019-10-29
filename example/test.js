@@ -25,7 +25,8 @@ task.ADDCommand(
         task.JUMP("innermarking"),
         () => console.log("hi - this one should be skipped"),
         task.MARK("innermarking"),
-        () => console.log("end, this one should be called")
+        () => console.log("end, this one should be called"),
+        task.EXIT("-3", "fat boi")
       )
       .catch(e => console.log(e)),
   task.MARK("Previous result"),

@@ -14,12 +14,9 @@ Mimicking assembly. Easy to visualize, modify and boost production speed.
 
 ```
 {
+  "2.4.3": fix error and silence the SUBTASK EXIT message
   "2.4.1": replace _EXECUTE with SUBTASK
   "2.3.1": support inner jump SKIP within _EXECUTE
-  "2.2.1": fix error's index
-  "2.1.9": minor changes
-  "2.1.8": roll back, remove 2.1.7 requirement
-  "2.1.7": _CUTINLINE and _EXECUTE only accept array of functions now
 }
 ```
 
@@ -29,6 +26,10 @@ Mimicking assembly. Easy to visualize, modify and boost production speed.
 <summary>Past updates</summary>
   <pre>  
 {
+  "2.2.1": fix error's index
+  "2.1.9": minor changes
+  "2.1.8": roll back, remove 2.1.7 requirement
+  "2.1.7": _CUTINLINE and _EXECUTE only accept array of functions now
   "2.0.1": add "this" binding
   "2.0.0": fix undefined error, ADDLookupCommand and ADDLookup can now be destructured
   "1.8.2": add ADDLookupCommand, change LABOR to accept both string and function

@@ -30,6 +30,7 @@ export class TaskLanguage {
   private memory: { [key: string]: any };
   private lookup: { [key: string]: Function };
   private _lineCutter: Array<any[]>;
+  private _mainProcess: Boolean;
 
   protected signalMap: { [key: string]: string };
   protected _running: boolean;
@@ -45,6 +46,7 @@ export class TaskLanguage {
     this.index = 0;
     this.memory = {};
     this._lineCutter = [];
+    this._mainProcess = true;
 
     this._running = false;
     this._log = logging;
@@ -85,6 +87,7 @@ export class TaskLanguage {
 
     let SUBTASK = async (...commands: any) => {
       let sub = new TaskLanguage(this._log);
+      sub._mainProcess = false;
       sub.userSignalMap = this.userSignalMap;
       sub.userLookup = this.userLookup;
       sub.memory = this.memory;
@@ -103,10 +106,10 @@ export class TaskLanguage {
 
     let SKIP = async () => {};
 
-    let EXIT = async (signal: string, error?: any) => {
+    let EXIT = async (signal: string, error?: any, mainProcess = this._mainProcess) => {
       if (this._signal != "0") return;
       this._signal = signal;
-      if (this._log) {
+      if (this._log && mainProcess) {
         if (this.userSignalMap[signal]) {
           console.log(this.userSignalMap[signal]);
         } else {
@@ -115,7 +118,7 @@ export class TaskLanguage {
       }
       let errorIndex = this.index;
       RESET(!error);
-      if (error) return Promise.reject({ index: errorIndex, expression: this.commands[this.index], error: error });
+      if (error) return Promise.reject({ index: errorIndex, expression: this.commands[errorIndex], error: error });
     };
 
     let RESET = (clearMemory = false) => {

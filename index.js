@@ -12,7 +12,8 @@ let logCommands = (index, key, args) => {
         argsDisplay.push(i && i.constructor == {}.constructor ? JSON.stringify(i) : i);
     console.log(colors.yellow(`${index}  ${key}  ${argsDisplay}`));
 };
-let util = { promisify, checkFunction, logCommands };
+let timeout = (ms) => new Promise(resolve => setTimeout(() => resolve(), ms));
+let util = { promisify, checkFunction, logCommands, timeout };
 let signalMap = {
     "-1": colors.green("program terminated after finish"),
     "-2": colors.green("program terminated by user"),
@@ -28,133 +29,116 @@ class TaskLanguage {
         this.commands = [];
         this.index = 0;
         this.memory = {};
-        this._lineCutter = [];
-        this._mainProcess = true;
-        this._running = false;
-        this._log = logging;
-        this._signal = "0";
-        this.signalMap = settings.signalMap;
-        this.userLookup = {};
-        this.userSignalMap = {};
+        this.entry = {};
+        this.entry._lineCutter = [];
+        this.entry._mainProcess = true;
+        this.entry._running = false;
+        this.entry._log = logging;
+        this.entry._signal = "0";
+        this.entry.signalMap = settings.signalMap;
+        this.entry.userLookup = {};
+        this.entry.userSignalMap = {};
         this.previousResult;
         // ELIMINATE POLLUTION
-        let MARK = () => { };
-        let JUMP = (indexOrMark) => {
-            this.index =
-                typeof indexOrMark === "number"
-                    ? indexOrMark
-                    : this.commands.findIndex(value => value[0] === "MARK" && value[1] === indexOrMark);
+        this.lookup = {};
+        this.lookup.MARK = () => { };
+        this.lookup.JUMP = (indexOrMark) => {
+            if (typeof indexOrMark === "number")
+                this.index = indexOrMark;
+            else
+                this.index = this.commands.findIndex(value => value[0] === "MARK" && value[1] === indexOrMark);
             return this.index === -1 ? Promise.reject("JUMP - Mark didn't found: " + indexOrMark) : (this.index -= 1);
         };
-        let JUMPIF = async (condition, trueDest, falseDest) => {
+        this.lookup.JUMPIF = async (condition, trueDest, falseDest) => {
             if (await condition(this.memory, this.index)) {
-                if (this._log)
+                if (this.entry._log)
                     console.log(settings.jumpMsg.true);
                 if (trueDest != undefined)
-                    await JUMP(trueDest);
+                    await this.lookup.JUMP(trueDest);
             }
             else {
-                if (this._log)
+                if (this.entry._log)
                     console.log(settings.jumpMsg.false);
                 if (falseDest != undefined)
-                    await JUMP(falseDest);
+                    await this.lookup.JUMP(falseDest);
             }
         };
-        let INJECT = async (callback) => {
+        this.lookup.INJECT = async (callback) => {
             return callback(this.memory, this.index);
         };
-        let SUBTASK = async (...commands) => {
-            let sub = new TaskLanguage(this._log);
-            sub._mainProcess = false;
-            sub.userSignalMap = this.userSignalMap;
-            sub.userLookup = this.userLookup;
+        this.lookup.SUBTASK = async (...commands) => {
+            let sub = new TaskLanguage(this.entry._log);
+            sub.entry._mainProcess = false;
+            sub.entry.userSignalMap = this.entry.userSignalMap;
+            sub.entry.userLookup = this.entry.userLookup;
             sub.memory = this.memory;
             sub.ADDCommand(...commands);
             return sub.RUN();
         };
-        let WAIT = async (exitCondition) => {
+        this.lookup.WAIT = async (exitCondition) => {
             if (typeof exitCondition === "number")
-                return await new Promise(resolve => setTimeout(() => resolve(true), exitCondition));
-            while (!(await exitCondition(this.memory, this.index))) {
-                await new Promise(resolve => setTimeout(() => resolve(true), 1000));
-            }
+                return await util.timeout(exitCondition);
+            while (!(await exitCondition(this.memory, this.index)))
+                await util.timeout(100);
             return true;
         };
-        let SKIP = async () => { };
-        let EXIT = async (signal, error, mainProcess = this._mainProcess) => {
-            if (this._signal != "0")
+        this.lookup.SKIP = async () => { };
+        this.lookup.EXIT = async (signal, error, mainProcess = this.entry._mainProcess) => {
+            if (this.entry._signal != "0")
                 return;
-            this._signal = signal;
-            if (this._log && mainProcess) {
-                if (this.userSignalMap[signal]) {
-                    console.log(this.userSignalMap[signal]);
-                }
-                else {
-                    console.log(this.signalMap[signal]);
-                }
+            this.entry._signal = signal;
+            if (this.entry._log && mainProcess) {
+                let target = this.entry.userSignalMap[signal] ? this.entry.userSignalMap[signal] : this.entry.signalMap[signal];
+                console.log(target);
             }
             let errorIndex = this.index;
-            RESET(!error);
+            this.lookup.RESET(!error);
             if (error)
                 return Promise.reject({ index: errorIndex, expression: this.commands[errorIndex], error: error });
         };
-        let RESET = (clearMemory = false) => {
+        this.lookup.RESET = (clearMemory = false) => {
             this.index = 0;
-            this._lineCutter = [];
-            this._running = false;
-            this._signal = 0;
+            this.entry._lineCutter = [];
+            this.entry._running = false;
+            this.entry._signal = 0;
             if (clearMemory)
                 this.memory = {};
         };
-        let LABOR = async (userKey, ...args) => {
+        this.lookup.LABOR = async (userKey, ...args) => {
             if (typeof userKey === "function")
                 userKey = userKey.name;
-            return this.userLookup[userKey](...args);
-        };
-        this.lookup = {
-            MARK,
-            JUMP,
-            JUMPIF,
-            INJECT,
-            SUBTASK,
-            WAIT,
-            EXIT,
-            SKIP,
-            RESET,
-            LABOR
+            return this.entry.userLookup[userKey](...args);
         };
     }
-    async RUN(indexOrMark = 0) {
-        this._running = true;
-        this.index =
-            typeof indexOrMark === "number"
-                ? indexOrMark
-                : this.commands.findIndex(value => value[0] === "MARK" && value[1] === indexOrMark);
-        if (this.index === -1)
-            return Promise.reject("RUN - Mark didn't found: " + indexOrMark);
-        while (this.index > -1 && this.index != this.commands.length && this._running) {
+    async RUN(indexOrMark = 0, exits) {
+        this.entry._running = true;
+        this.lookup.JUMP(indexOrMark);
+        this.index += 1;
+        let exit = exits;
+        if (exit == undefined)
+            exit = this.commands.length;
+        if (typeof exit == "string") {
+            exit = this.commands.findIndex(value => value[0] === "MARK" && value[1] === exit);
+            if (exit < 0)
+                return this.lookup.EXIT("-3", `exit MARK doesn't exist: ${exits}`);
+        }
+        while (this.index > -1 && this.index != exit && this.entry._running) {
             let cmdArray = this.commands[this.index] || [];
             cmdArray = util.checkFunction(cmdArray);
             let key = String(cmdArray[0]);
             let args = cmdArray.slice(1);
-            if (this._log)
+            let toPerform = this.entry.userLookup[key] ? this.entry.userLookup[key] : this.lookup[key];
+            if (this.entry._log)
                 util.logCommands(this.index, key, args);
-            if (this.userLookup[key]) {
-                this.previousResult = await util
-                    .promisify(this.userLookup[key], ...args)
-                    .catch(err => this.lookup.EXIT("-3", err));
-            }
-            else if (this.lookup[key]) {
-                this.previousResult = await util.promisify(this.lookup[key], ...args).catch(err => this.lookup.EXIT("-3", err));
-            }
-            else {
+            if (toPerform)
+                this.previousResult = await util.promisify(toPerform, ...args).catch(err => this.lookup.EXIT("-3", err));
+            else
                 return this.lookup.EXIT("-3", `function name doesn't exit: ${key}`);
-            }
             this.index += 1; // jump needs to -1
-            while (this._lineCutter.length != 0)
-                await this._EXECUTE(this._lineCutter.shift());
+            while (this.entry._lineCutter.length != 0)
+                await this._EXECUTE(this.entry._lineCutter.shift());
         }
-        return this.lookup.EXIT(this._running ? "-1" : "-2");
+        return this.lookup.EXIT(this.entry._running ? "-1" : "-2");
     }
     MARK(name) {
         return ["MARK", name];
@@ -190,24 +174,24 @@ class TaskLanguage {
         return this.lookup["SUBTASK"](...commands);
     }
     async _CUTINLINE(...commands) {
-        this._lineCutter = this._lineCutter.concat(commands);
+        this.entry._lineCutter = this.entry._lineCutter.concat(commands);
     }
     ADDCommand(...commands) {
         this.commands = this.commands.concat(commands);
     }
     ADDLookup(pairs) {
         Object.keys(pairs).map(i => {
-            this.userLookup[i] = pairs[i].bind(this);
+            this.entry.userLookup[i] = pairs[i].bind(this);
             pairs[i] = (...param) => [i, ...param];
         });
         return pairs;
     }
     ADDSignalMap(pairs) {
-        this.userSignalMap = Object.assign(this.userSignalMap, pairs);
+        this.entry.userSignalMap = Object.assign(this.entry.userSignalMap, pairs);
     }
     ADDLookupCommand(...functions) {
         return functions.map(func => {
-            this.userLookup[func.name] = func.bind(this);
+            this.entry.userLookup[func.name] = func.bind(this);
             return (...param) => [func.name, ...param];
         });
     }

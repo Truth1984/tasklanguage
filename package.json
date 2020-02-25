@@ -7,7 +7,7 @@
     "build": "tsc --target ES2017 --module commonjs ./index.ts"
   },
   "name": "tasklanguage",
-  "version": "2.5.0",
+  "version": "2.5.2",
   "description": "tasks handle for js/ts",
   "main": "./index.js",
   "repository": "https://github.com/truth1984/tasklanguage",

@@ -140,6 +140,13 @@ class TaskLanguage {
         }
         return this.lookup.EXIT(this.entry._running ? "-1" : "-2");
     }
+    async RUNMARK(...MARKS) {
+        let marksArray = this.commands.filter(item => item[0] == "MARK").map(item => item[1]);
+        for (let i of MARKS) {
+            let endMark = marksArray[marksArray.indexOf(i) + 1];
+            await this.RUN(i, endMark);
+        }
+    }
     MARK(name) {
         return ["MARK", name];
     }

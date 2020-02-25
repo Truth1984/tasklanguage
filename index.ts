@@ -154,6 +154,14 @@ export class TaskLanguage {
     return this.lookup.EXIT(this.entry._running ? "-1" : "-2");
   }
 
+  public async RUNMARK(...MARKS: string[]) {
+    let marksArray = this.commands.filter(item => item[0] == "MARK").map(item => item[1]);
+    for (let i of MARKS) {
+      let endMark = marksArray[marksArray.indexOf(i) + 1];
+      await this.RUN(i, endMark);
+    }
+  }
+
   public MARK(name: string) {
     return ["MARK", name];
   }

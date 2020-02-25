@@ -14,6 +14,7 @@ Mimicking assembly. Easy to visualize, modify and boost production speed.
 
 ```
 {
+  "2.5.2": add RUNMARK()
   "2.5.0": run() can exit on specific mark
   "2.4.3": fix error and silence the SUBTASK EXIT message
   "2.4.1": replace _EXECUTE with SUBTASK
@@ -124,6 +125,10 @@ publicly setting the inner memory for command list
 ### RUN(indexOrMark: number | string = 0, exits?: number | string)
 
 running from beginning (index = 0) or specific mark. & exiting on specific mark.
+
+### RUNMARK(...MARKS : string[])
+
+run specific mark range, end 'til next mark.
 
 #### MARK(name: string)
 
